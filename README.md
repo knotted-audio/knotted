@@ -2,11 +2,37 @@
 
 Looping software for the web
 
+## TODOs
+
+- Module that can take the redux store and render the loop. Needs to handle:
+  > quantizing (only put changes into effect at the next time round - configurable length)
+  > Reliable scheduling of notes in advance
+  > Recording of live inputs into loops
+  > RAF callback directly updating the css classes to control the beat-related changes (grid lighting up, cursors on
+    loops)
+
+- Get a global metronome/scheduler going
+  > How to represent in Redux state... Needs to integrate with audio and visual parts of app
+  > Highlight beat on grid
+  > Add cursor to loop (multiple per loop depending on number of instantiations)
+  > Trigger click on each beat
+  > Triggered by user interaction on play button
+
+- Add ability to drag a loop onto the grid + remove from grid
+  > hotkeys? number of loop followed by beat number (with hotkey for cancel in case of mistakes)
+
+- Indicate loop length in Loop panel
+
+
+## Research
+
 
 ### React
 
 - https://github.com/klambycom/react-waveform
 - https://github.com/Ameobea/react-control-panel
+- https://www.react-spring.io/docs/hooks/basics
+- SVG or React DnD for grid?
 
 ### WebAudio
 
