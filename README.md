@@ -4,24 +4,16 @@ Looping software for the web
 
 ## TODOs
 
-- Module that can take the redux store and render the loop. Needs to handle:
-  > quantizing (only put changes into effect at the next time round - configurable length)
-  > Reliable scheduling of notes in advance
-  > Recording of live inputs into loops
-  > RAF callback directly updating the css classes to control the beat-related changes (grid lighting up, cursors on
-    loops)
+- Apply changes to state to audio scheduler at the start of each loop (configurable length)
+- Animation is slightly out of sync with audio
+- Animate cursor on each loop
 
-- Get a global metronome/scheduler going
-  > How to represent in Redux state... Needs to integrate with audio and visual parts of app
-  > Highlight beat on grid
-  > Add cursor to loop (multiple per loop depending on number of instantiations)
-  > Trigger click on each beat
-  > Triggered by user interaction on play button
-
-- Add ability to drag a loop onto the grid + remove from grid
+- Ability to drag a loop onto the grid + remove from grid
   > hotkeys? number of loop followed by beat number (with hotkey for cancel in case of mistakes)
 
 - Indicate loop length in Loop panel
+
+- IO Controls
 
 
 ## Research

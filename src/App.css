@@ -42,9 +42,13 @@
 .Loop {
   padding: 10px;
   margin: auto;
-  background-color: rgb(39, 40, 34);
+  background-color: rgb(227, 227, 227);
   color: white;
   text-align: left;
+}
+
+.Loop.active {
+    background-color: black;
 }
 
 .Loop:hover {
@@ -81,7 +85,7 @@
 }
 
 .Grid {
-  background-color: #dddddd;
+  background-color: rgb(227, 227, 227);
 }
 .Grid.active {
   background-color: red;

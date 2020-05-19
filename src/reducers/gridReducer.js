@@ -1,15 +1,29 @@
-import { TOGGLE_PLAY, SET_TEMPO } from '../actions/grid';
+import {
+  TOGGLE_PLAY,
+  TOGGLE_METRONOME,
+  SET_ACTIVE_LOOP,
+  SET_GAIN,
+  SET_TEMPO,
+  SET_GRID_ELEM,
+  ADD_LOOP_INSTANCE,
+} from "../actions/grid";
+
+window.gridElems = [];
 
 const initialState = {
   beatsPerBar: 4,
   beats: 16,
   playing: false,
-  playMetronome: true,
-  tempo: 80,
+  metronome: true,
+  tempo: 136,
   quantizationBeats: 4,
   gain: 0.2,
 
-  grid: generateGrid(16, 4)
+  // The highlighted loop that will be added to the grid when its clicked
+  activeLoop: null,
+
+  grid: generateGrid(16, 4),
+  // gridElems: [],
 };
 
 // TODO: Seemless switching betweeen resolutions - different state per view
@@ -21,17 +35,45 @@ function generateGrid(beats, beatsPerBar) {
     return {
       beat: beat + 1,
       barBeat,
-      loopTriggers: (beat + 1) % 8 === 1 ? ['ABCED'] : []
+      loopTriggers: [],
     };
   });
 }
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case SET_GRID_ELEM:
+      // Mutate in place as these are opaque refs
+      window.gridElems[action.payload.index - 1] = action.payload.domElem;
+      return state;
+    case ADD_LOOP_INSTANCE:
+      const grid = [...state.grid];
+      const gridItem = grid[action.payload.beat - 1];
+      gridItem.loopTriggers.push(action.payload.loopId);
+
+      return {
+        ...state,
+        grid,
+      };
+    case TOGGLE_METRONOME:
+      return {
+        ...state,
+        metronome: !state.metronome,
+      };
     case TOGGLE_PLAY:
       return {
         ...state,
-        playing: !state.playing
+        playing: !state.playing,
+      };
+    case SET_ACTIVE_LOOP:
+      return {
+        ...state,
+        activeLoop: action.payload.loopId,
+      };
+    case SET_GAIN:
+      return {
+        ...state,
+        gain: action.payload.gain,
       };
     case SET_TEMPO:
       return {

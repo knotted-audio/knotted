@@ -1,14 +1,18 @@
 import React from "react";
 import { connect } from "react-redux";
 
+import { setGridElem, addLoopInstance } from "../actions/grid";
+
 function GridLoopMarker({ id, color, soft }) {
   const opacity = soft ? 0.3 : 1;
   return <div className="GridLoopMarker" style={{ backgroundColor: color, opacity }} />;
 }
 
-function Grid({ beat, barBeat, loopTriggers, loopTails, active }) {
+function Grid({ beat, barBeat, loopTriggers, loopTails, activeLoop, setGridElemA, onClick }) {
+  // Save a ref (into redux) so the scheduler can manipule the "active" class to
+  // animate the sequencer
   return (
-    <div className={`Grid ${active ? 'active' : ''}`}>
+    <div ref={ref => setGridElemA(beat, ref)} className="Grid" onClick={onClick}>
       {loopTriggers.map((l) => (
         <GridLoopMarker key={l.id} {...l} />
       ))}
@@ -19,11 +23,11 @@ function Grid({ beat, barBeat, loopTriggers, loopTails, active }) {
   );
 }
 
-function GridPanel({ activeBeat, width, grid, beats, beatsPerBar }) {
+function GridPanel({ activeLoop, width, grid, beats, beatsPerBar, setGridElemA, addLoopInstanceA }) {
   return (
     <div className="GridPanel" style={{ width }} >
-      {grid.map((g) => (
-        <Grid key={g.beat} active={(activeBeat + 1) === g.beat} {...g} />
+      {grid.map(g => (
+        <Grid key={g.beat} {...g} setGridElemA={setGridElemA} onClick={() => activeLoop && addLoopInstanceA(g.beat, activeLoop)} />
       ))}
     </div>
   );
@@ -32,14 +36,18 @@ function GridPanel({ activeBeat, width, grid, beats, beatsPerBar }) {
 const inRange = (start, end, val) => (val >= start) && (val <= end);
 
 const mapStateToProps = (state) => {
+  const tempo = state.grid.tempo;
+
   const activeLoops = state.grid.grid.map((g) =>
     g.loopTriggers.map((id) => {
       const originLoop = state.loop.loops.find((l) => l.id === id);
+      const beatDuration = 60.0 / tempo;
+      const lengthInBeats = originLoop.buffer.duration / beatDuration; 
+
       const range = [
         g.beat,
-        (g.beat + originLoop.length - 1) % state.grid.grid.length,
+        (g.beat + lengthInBeats - 1) % state.grid.grid.length,
       ];
-      console.log(range, g, originLoop);
 
       return {
         range,
@@ -65,4 +73,9 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps)(GridPanel);
+const mapDispatchToProps = (dispatch) => ({
+  setGridElemA: (index, domElem) => dispatch(setGridElem(index, domElem)),
+  addLoopInstanceA: (beat, loopId) => dispatch(addLoopInstance(beat, loopId)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(GridPanel);

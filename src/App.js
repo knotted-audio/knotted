@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { connect } from "react-redux";
-import "./App.css";
+
+import ReactControlPanel, { Range, Checkbox } from "react-control-panel";
 
 import LoopPanel from "./components/LoopPanel";
 import GridPanel from "./components/GridPanel";
+import "./App.css";
 
-import { setTempo, togglePlay } from "./actions/grid";
+import { setTempo, togglePlay, toggleMetronome, setGain } from "./actions/grid";
 
 function useWindowSize() {
   const isClient = typeof window === "object";
@@ -35,7 +37,7 @@ function useWindowSize() {
   return windowSize;
 }
 
-function App({ playing, tempo, togglePlayA, setTempoA }) {
+function App({ playing, gain, tempo, metronome, togglePlayA, setGainA, setTempoA, toggleMetronomeA }) {
   // TODO: Make draggable
   const width = useWindowSize().width;
 
@@ -44,10 +46,30 @@ function App({ playing, tempo, togglePlayA, setTempoA }) {
     <div className="Wrapper">
       <header className="Controls">
         <button className={`PlayButton ${cls}`} onClick={togglePlayA} />
-        <button className={`MetronomeButton`} onClick={() => ({})} />
-        <button className="Tempo" onClick={() => setTempoA(tempo + 10)}>
-          BPM {tempo}
-        </button>
+
+        <ReactControlPanel
+          theme="light"
+          onChange={(key, val) => {
+            if (key === "tempo") {
+              setTempoA(val);
+            }
+            if (key === "metronome") {
+              toggleMetronomeA();
+            }
+            if (key === "gain") {
+              setGainA(val);
+            }
+          }}
+          state={{
+            tempo,
+            gain,
+            metronome,
+          }}
+        >
+          <Range label="tempo" min={40} max={260} step={1} />
+          <Range label="gain" min={0} max={1} />
+          <Checkbox label="metronome" />
+        </ReactControlPanel>
       </header>
       <div className="App">
         <GridPanel width={width / 2} activeBeat={0} />
@@ -57,13 +79,17 @@ function App({ playing, tempo, togglePlayA, setTempoA }) {
   );
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
   togglePlayA: () => dispatch(togglePlay()),
+  toggleMetronomeA: () => dispatch(toggleMetronome()),
   setTempoA: (tempo) => dispatch(setTempo(tempo)),
+  setGainA: (gain) => dispatch(setGain(gain)),
 });
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   playing: state.grid.playing,
   tempo: state.grid.tempo,
+  metronome: state.grid.metronome,
+  gain: state.grid.gain,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);

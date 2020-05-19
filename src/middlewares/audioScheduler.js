@@ -2,27 +2,29 @@
 // Middleware that handles scheduling all the active loops to play at the correct times. It
 // reacts to changes in the redux state while maintaining a consistent beat.
 //
-// TODO: Similar version of this for "real-time" DOM updates of the grid & loop cursors based
-//       on the beat. We want to avoid using React's reconciler for this as it schedules updates
-//       for a later point when we want to prioritise frame-level precision of which grid square
-//       is lit up
+// We also manage DOM updates of the grid & loop cursors based on the beat. We want to avoid
+// using React's reconciler for this as it schedules updates for a later point when we want
+// to prioritise frame-level precision of which grid square is lit up
 //
 const SCHEDULE_AHEAD_TIME = 0.1;
 const BLIP_LENGTH = 0.01;
+const ANIMATION_TOLERANCE = -0.05;
 
 const audioScheduler = (store) => (next) => {
   const audioCtx = new AudioContext();
   let frame = null;
-  let nextNoteTime = audioCtx.currentTime;
-  let nextBeat = 0;
+  let nextNoteTime;
+  let nextGridChangeTime;
+  let nextBeat;
 
   function loop() {
     const state = store.getState();
     const {
       playing,
-      playMetronome,
+      metronome,
       tempo,
       grid,
+      // gridElems,
       gain,
       beats,
       beatsPerBar,
@@ -50,6 +52,23 @@ const audioScheduler = (store) => (next) => {
     try {
       const cTime = audioCtx.currentTime;
 
+      if (playing && nextGridChangeTime < cTime + ANIMATION_TOLERANCE) {
+        let prevBeat = (nextBeat - 1);
+        if (prevBeat === -1) {
+          prevBeat = beats - 1;
+        }
+
+        console.log(prevBeat, nextBeat);
+
+        window.gridElems[prevBeat].classList.remove('active');
+        window.gridElems[nextBeat].classList.add('active');
+        nextGridChangeTime += secondsPerBeat;
+      }
+
+      if (!playing) {
+        window.gridElems.forEach(elem => elem.classList.remove('active'));
+      }
+
       //
       // TODO: Increase grid resolution to be 1/16 of each bar
       //
@@ -73,16 +92,20 @@ const audioScheduler = (store) => (next) => {
           });
 
         // Trigger metronome on each beat
-        if (playMetronome) {
+        if (metronome) {
           triggerMetronome(nextBeat, nextNoteTime);
         }
 
         nextBeat += 1;
+        nextBeat %= beats;
 
         // Set the next target to schedule for
-        nextNoteTime += secondsPerBeat / 4.0;
+        nextNoteTime += secondsPerBeat;
       }
     } finally {
+      // TODO: Fallback to setTimeout if in background tab somehow... Otherwise I need
+      // to switch the audio loop to setTimeout and keep the UI on requestAnimationFrame (and
+      // take into account that multiple beats can be missed before the loop will resume)
       frame = requestAnimationFrame(loop);
     }
   }
@@ -97,6 +120,9 @@ const audioScheduler = (store) => (next) => {
 
     // If the playing state has been toggled, start or stop the Raf loop
     if (store.getState().grid.playing) {
+      nextBeat = 0;
+      nextNoteTime = audioCtx.currentTime;
+      nextGridChangeTime = audioCtx.currentTime;
       frame = requestAnimationFrame(loop);
     } else if (frame) {
       cancelAnimationFrame(frame);

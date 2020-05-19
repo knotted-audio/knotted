@@ -1,3 +1,4 @@
+import { CREATE_LOOP } from "../actions/loop";
 
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -32,23 +33,14 @@ const initialState = {
   loops: [
     {
       id: "LKJHG",
-      length: 4, // beats
       muted: false,
       color: "#3D9970",
       buffer: createBuffer(),
     },
     {
-      id: "ABCED",
-      length: 4, // beats
+      id: "CRUYN",
       muted: false,
       color: "#F012BE",
-      buffer: createBuffer(),
-    },
-    {
-      id: "CRUYN",
-      length: 8, // beats
-      muted: true,
-      color: "#FF4136",
       buffer: createBuffer(),
     },
   ],
@@ -56,6 +48,14 @@ const initialState = {
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case CREATE_LOOP:
+      return {
+        ...state,
+        loops: [{
+          ...action.payload,
+          muted: false
+        }, ...state.loops],
+      };
     default:
       return state;
   }
