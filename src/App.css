@@ -10,6 +10,7 @@
   height: 50px;
   padding: 10px;
   padding-left: 100px;
+  padding-bottom: 30px;
 }
 
 .PlayButton {
@@ -43,12 +44,11 @@
   padding: 10px;
   margin: auto;
   background-color: rgb(227, 227, 227);
-  color: white;
   text-align: left;
 }
 
 .Loop.active {
-    background-color: black;
+    /* background-color: black; */
 }
 
 .Loop:hover {
@@ -57,42 +57,44 @@
   }
 
 .LoopPanel {
-  width: 50%;
   height: 100%;
-  margin: 5px;
+  padding: 10px;
 }
 
 .GridPanel {
-  padding: 10px;
-  margin: 5px;
-  height: 100%;
-  border: 1.5px solid #ccc!important;
-  border-radius: 10px;
-
   display: grid;
-  justify-items: space-evenly;
-  grid-template-columns: calc(25% - 7.5px) calc(25% - 7.5px) calc(25% - 7.5px) calc(25% - 7.5px);
-  grid-gap: 10px;
+  grid-template-columns: 23% 23% 23% 23%;
+  grid-template-rows: 23% 23% 23% 23%;
+  grid-gap: 0.5%;
+  padding: 0.5%;
   background-color: #fff;
   color: #444;
 }
 
 .GridPanel div::before {
-  content: "";
-  padding-bottom: 100%;
-  display: inline-block;
-  vertical-align: top;
+  /* content: ""; */
 }
 
 .Grid {
   background-color: rgb(227, 227, 227);
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
 }
 .Grid.active {
   background-color: red;
 }
 
 .GridLoopMarker {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
+  height: 0;
+  width: 45%;
+  padding-top: 45%;
+  margin: 2.5%;
+}
+
+.GridLoopMarker.half {
+  height: 0;
+  width: 20%;
+  padding-top: 20%;
+  margin-top: 15%;
 }

@@ -4,6 +4,8 @@ import {
   SET_ACTIVE_LOOP,
   SET_GAIN,
   SET_TEMPO,
+  SET_INPUT_DEVICES,
+  SET_MEDIA_STREAM,
   SET_GRID_ELEM,
   ADD_LOOP_INSTANCE,
 } from "../actions/grid";
@@ -15,12 +17,16 @@ const initialState = {
   beats: 16,
   playing: false,
   metronome: true,
-  tempo: 136,
+  tempo: 136.55,
   quantizationBeats: 4,
   gain: 0.2,
 
   // The highlighted loop that will be added to the grid when its clicked
   activeLoop: null,
+
+  activeInputDevice: null,
+  inputDeviceList: [],
+  mediaStream: null,
 
   grid: generateGrid(16, 4),
   // gridElems: [],
@@ -49,7 +55,10 @@ export default (state = initialState, action) => {
     case ADD_LOOP_INSTANCE:
       const grid = [...state.grid];
       const gridItem = grid[action.payload.beat - 1];
-      gridItem.loopTriggers.push(action.payload.loopId);
+      gridItem.loopTriggers.push({
+        id: action.payload.loopId,
+        instanceId: action.payload.instanceId,
+      });
 
       return {
         ...state,
@@ -74,6 +83,17 @@ export default (state = initialState, action) => {
       return {
         ...state,
         gain: action.payload.gain,
+      };
+    case SET_INPUT_DEVICES:
+      return {
+        ...state,
+        inputDeviceList: action.payload.devices,
+      };
+    case SET_MEDIA_STREAM:
+      console.log(action.payload);
+      return {
+        ...state,
+        mediaStream: action.payload.stream,
       };
     case SET_TEMPO:
       return {

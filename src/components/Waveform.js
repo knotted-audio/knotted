@@ -1,4 +1,4 @@
-import React, { useRef, useLayoutEffect } from "react";
+import React, { useRef, useLayoutEffect, memo } from "react";
 
 const Waveform = (props = {}) => {
   const {
@@ -15,16 +15,6 @@ const Waveform = (props = {}) => {
 
   useLayoutEffect(() => {
     const context = canvas.current.getContext("2d");
-
-    // context.save();
-    // context.fillStyle = "hsl(0, 0%, 95%)";
-    // context.fillRect(0, 0, width, height);
-    //
-    // context.strokeStyle = "black";
-    // context.beginPath();
-    // context.arc(width / 2, height / 2, width / 4, 0, Math.PI * 2);
-    // context.stroke();
-    // context.restore();
 
     var w = width * zoom;
     var middle = height / 2.0;
@@ -46,21 +36,6 @@ const Waveform = (props = {}) => {
   return <canvas ref={canvas} width={dw} height={dh} style={style} />;
 };
 
-// getDefaultProps: function () {
-// },
-//
-// propTypes: {
-//   buffer: React.PropTypes.object.isRequired,
-//   width: React.PropTypes.number,
-//   height: React.PropTypes.number,
-//   zoom: React.PropTypes.number,
-//   color: React.PropTypes.string,
-//   onDone: React.PropTypes.func
-// },
-
-// componentDidMount: function () {
-// },
-//
 function draw(width, step, middle, data, ctx) {
   for (var i = 0; i < width; i += 1) {
     var min = 1.0;
@@ -80,4 +55,15 @@ function draw(width, step, middle, data, ctx) {
   }
 }
 
-export default Waveform;
+// Use the loop ID equality as a proxy for the buffer equality
+export default memo(
+  (props) => <Waveform {...props} />,
+  (prevProps, nextProps) => 
+    (
+      prevProps.id === nextProps.id &&
+      prevProps.width === nextProps.width &&
+      prevProps.height === nextProps.height &&
+      prevProps.color === nextProps.color
+    )
+  
+);

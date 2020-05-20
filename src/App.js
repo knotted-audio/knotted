@@ -1,13 +1,26 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { connect } from "react-redux";
+import { DndProvider } from "react-dnd";
+import Backend from "react-dnd-html5-backend";
 
-import ReactControlPanel, { Range, Checkbox } from "react-control-panel";
+import ReactControlPanel, {
+  Select,
+  Range,
+  Checkbox,
+} from "react-control-panel";
 
 import LoopPanel from "./components/LoopPanel";
 import GridPanel from "./components/GridPanel";
 import "./App.css";
 
-import { setTempo, togglePlay, toggleMetronome, setGain } from "./actions/grid";
+import {
+  setTempo,
+  togglePlay,
+  toggleMetronome,
+  setGain,
+  setInputDevices,
+  setMediaStream,
+} from "./actions/grid";
 
 function useWindowSize() {
   const isClient = typeof window === "object";
@@ -37,9 +50,47 @@ function useWindowSize() {
   return windowSize;
 }
 
-function App({ playing, gain, tempo, metronome, togglePlayA, setGainA, setTempoA, toggleMetronomeA }) {
-  // TODO: Make draggable
-  const width = useWindowSize().width;
+function App({
+  playing,
+  gain,
+  tempo,
+  metronome,
+  mediaStream,
+  activeInputDevice,
+  togglePlayA,
+  inputDeviceList,
+  setGainA,
+  setTempoA,
+  toggleMetronomeA,
+  setInputDevicesA,
+  setMediaStreamA,
+}) {
+  //
+  // Get permission to access input audio stream
+  //
+  useEffect(() => {
+    navigator.mediaDevices
+      .getUserMedia({ audio: { deviceId: activeInputDevice } })
+      .then((stream) => setMediaStreamA(stream));
+  }, [setMediaStreamA, activeInputDevice]);
+
+  useEffect(() => {
+    if (mediaStream) {
+      navigator.mediaDevices
+        .enumerateDevices()
+        .then((res) => setInputDevicesA(res));
+    }
+  }, [mediaStream, setInputDevicesA]);
+
+  const { width, height } = useWindowSize();
+  const gridWidth = Math.min(0.75 * width, height - 120);
+
+  const deviceOpts = inputDeviceList.reduce((acc, dev) => {
+    if (dev.kind === "audioinput") {
+      acc[dev.label] = dev.deviceId;
+    }
+    return acc;
+  }, {});
 
   const cls = playing ? "pause" : "";
   return (
@@ -49,6 +100,7 @@ function App({ playing, gain, tempo, metronome, togglePlayA, setGainA, setTempoA
 
         <ReactControlPanel
           theme="light"
+          width={width * 0.6}
           onChange={(key, val) => {
             if (key === "tempo") {
               setTempoA(val);
@@ -69,11 +121,14 @@ function App({ playing, gain, tempo, metronome, togglePlayA, setGainA, setTempoA
           <Range label="tempo" min={40} max={260} step={1} />
           <Range label="gain" min={0} max={1} />
           <Checkbox label="metronome" />
+          <Select label="input" options={deviceOpts} />
         </ReactControlPanel>
       </header>
       <div className="App">
-        <GridPanel width={width / 2} activeBeat={0} />
-        <LoopPanel width={width / 2} />
+        <DndProvider backend={Backend}>
+          <GridPanel width={gridWidth} activeBeat={0} />
+          <LoopPanel width={width - gridWidth} />
+        </DndProvider>
       </div>
     </div>
   );
@@ -84,12 +139,16 @@ const mapDispatchToProps = (dispatch) => ({
   toggleMetronomeA: () => dispatch(toggleMetronome()),
   setTempoA: (tempo) => dispatch(setTempo(tempo)),
   setGainA: (gain) => dispatch(setGain(gain)),
+  setInputDevicesA: (devices) => dispatch(setInputDevices(devices)),
+  setMediaStreamA: (stream) => dispatch(setMediaStream(stream)),
 });
 const mapStateToProps = (state) => ({
   playing: state.grid.playing,
   tempo: state.grid.tempo,
   metronome: state.grid.metronome,
   gain: state.grid.gain,
+  inputDeviceList: state.grid.inputDeviceList,
+  activeInputDevice: state.grid.activeInputDevice,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
