@@ -130,6 +130,7 @@ function App({
           <LoopPanel width={width - gridWidth} />
         </DndProvider>
       </div>
+      <footer>By <a href="https://jtfell.com">jtfell</a></footer>
     </div>
   );
 }

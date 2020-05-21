@@ -15,7 +15,6 @@ Looping software for the web
 
 ## Research
 
-
 ### WebAudio
 
 Tutorial for schedulers in WebAudio

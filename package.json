@@ -2,7 +2,7 @@
   "name": "knotted",
   "version": "0.1.0",
   "private": false,
-  "homepage": "https://jtfell.com/knotted",
+  "homepage": "https://knotted.live",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
@@ -24,7 +24,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build -o knotted"
   },
   "eslintConfig": {
     "extends": "react-app"
