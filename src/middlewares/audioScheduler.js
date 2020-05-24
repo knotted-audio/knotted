@@ -148,7 +148,7 @@ const audioScheduler = (store) => (next) => {
       gain,
       beats,
       beatsPerBar,
-      quantizationBeats,
+      loopLength,
     } = state.grid;
     const { loops } = state.loop;
     const secondsPerBeat = 60.0 / tempo;
@@ -190,9 +190,9 @@ const audioScheduler = (store) => (next) => {
 
         // At this point, we lock in the current state in redux as what audio will be scheduled
         // regardless of user changes.
-        if (nextBeat % quantizationBeats === 0) {
+        if (nextBeat % loopLength === 0) {
           const loopStart = nextNoteTime;
-          const loopEnd = nextNoteTime + quantizationBeats * secondsPerBeat;
+          const loopEnd = nextNoteTime + loopLength * secondsPerBeat;
 
           console.log(`New loop - ${loopStart} / ${loopEnd}`);
 

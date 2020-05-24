@@ -4,7 +4,9 @@ import {
   SET_ACTIVE_LOOP,
   SET_GAIN,
   SET_TEMPO,
+  SET_LOOP_LENGTH,
   SET_INPUT_DEVICES,
+  SET_MIDI_DEVICES,
   SET_MEDIA_STREAM,
   SET_GRID_ELEM,
   ADD_LOOP_INSTANCE,
@@ -18,11 +20,15 @@ const initialState = {
   playing: false,
   metronome: true,
   tempo: 136.55,
+  loopLength: 8,
   quantizationBeats: 4,
   gain: 0.2,
 
   // The highlighted loop that will be added to the grid when its clicked
   activeLoop: null,
+
+  activeMidiDevice: null,
+  midiDeviceList: [],
 
   activeInputDevice: null,
   inputDeviceList: [],
@@ -84,13 +90,22 @@ export default (state = initialState, action) => {
         ...state,
         gain: action.payload.gain,
       };
+    case SET_LOOP_LENGTH:
+      return {
+        ...state,
+        loopLength: action.payload.loopLength,
+      };
+    case SET_MIDI_DEVICES:
+      return {
+        ...state,
+        midiDeviceList: action.payload.devices,
+      };
     case SET_INPUT_DEVICES:
       return {
         ...state,
         inputDeviceList: action.payload.devices,
       };
     case SET_MEDIA_STREAM:
-      console.log(action.payload);
       return {
         ...state,
         mediaStream: action.payload.stream,
