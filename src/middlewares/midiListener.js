@@ -11,6 +11,8 @@ import {
   triggerNote,
 } from "../actions/grid";
 
+import { recordMidiNote } from "../actions/loop";
+
 import { getAudioCtx } from "../audioUtils";
 import { HiHat, Snare, Kick, Clap, Cymbal } from "../engines";
 
@@ -47,6 +49,7 @@ const NOTE_ON = 144;
 // const NOTE_OFF = 128;
 
 const midiListener = (store) => (next) => {
+
   // Listen to MIDI devices and dispatch actions when MIDI messages are received.
   const listeningTo = [];
   const listen = (devices, store) => {
@@ -54,8 +57,9 @@ const midiListener = (store) => (next) => {
       if (listeningTo.indexOf(dev.id) === -1) {
         dev.addEventListener("midimessage", (msg) => {
           const [cmd, note, velocity] = msg.data;
+          const ctx = getAudioCtx();
           if (cmd === NOTE_ON && velocity > 0) {
-            store.dispatch(triggerNote(NOTE_TO_KEY[note], velocity));
+            store.dispatch(triggerNote(NOTE_TO_KEY[note], velocity, ctx.currentTime));
           }
         });
         listeningTo.push(dev.id);
@@ -79,18 +83,23 @@ const midiListener = (store) => (next) => {
       //
       //  This allows us to start lighting up keys on the sample pad etc based on mode
       //
-      const ctx = getAudioCtx();
-      const { note } = action.payload;
+      // const ctx = getAudioCtx();
+      const { note, triggerTime } = action.payload;
 
-      const { loopLength } = store.getState().grid;
-      const time = ctx.currentTime;
+      const { loopLength, recordingMidi } = store.getState().grid;
+      // const time = ctx.currentTime;
+      //
+      // const kick = new Kick(ctx);
+      // const hihat = new HiHat(ctx);
+      // const snare = new Snare(ctx);
+      // const clap = new Clap(ctx);
+      // const cymbal = new Cymbal(ctx);
 
-      const kick = new Kick(ctx);
-      const hihat = new HiHat(ctx);
-      const snare = new Snare(ctx);
-      const clap = new Clap(ctx);
-      const cymbal = new Cymbal(ctx);
-
+      const schedule = (engine) => {
+        if (recordingMidi) {
+          return recordMidiNote(engine, triggerTime)
+        }
+      };
 
       // TODO:
       //
@@ -107,11 +116,11 @@ const midiListener = (store) => (next) => {
         F1: () => setLoopLength(loopLength * 2),
 
         // Drum samples
-        C2: () => kick.trigger(time),
-        Db2: () => hihat.trigger(time),
-        D2: () => snare.trigger(time),
-        Eb2: () => cymbal.trigger(time),
-        E2: () => clap.trigger(time),
+        C2: () => schedule(Kick),
+        Db2: () => schedule(HiHat),
+        D2: () => schedule(Snare),
+        Eb2: () => schedule(Cymbal),
+        E2: () => schedule(Clap),
       };
 
       const newAction = NOTE_MAPPING[note];

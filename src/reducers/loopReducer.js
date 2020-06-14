@@ -1,4 +1,4 @@
-import { CREATE_LOOP } from "../actions/loop";
+import { CREATE_LOOP, RECORD_MIDI_NOTE, SET_LOOP_START_TIME } from "../actions/loop";
 import { ADD_LOOP_INSTANCE } from "../actions/grid";
 
 // Loop: {
@@ -10,12 +10,47 @@ import { ADD_LOOP_INSTANCE } from "../actions/grid";
 const initialState = {
   loops: [],
   loopsInUse: [],
+
+  activeMidiTrack: 0,
+  loopStartTime: 0,
+  loopDuration: 0,
 };
 
 const MAX_LOOPS = 5;
+const midiTracks = [...Array(MAX_LOOPS).keys()].map(() => ({ muted: false, timeline: {} }));
+
+export function getMidiTracks() {
+  return midiTracks;
+}
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case RECORD_MIDI_NOTE: {
+      const { triggerTime, engine } = action.payload;
+      const { timeline } = midiTracks[state.activeMidiTrack];
+
+      // Determine the offset from the start of the loop it was recorded in. This allows us
+      // to replay it at the right time in subsequent loops and quantize it
+      const secondsIntoLoop = (triggerTime - state.loopStartTime) % state.loopDuration;
+
+      const timesliceInTrack = timeline[secondsIntoLoop] || [];
+      timesliceInTrack.push(engine);
+      timeline[secondsIntoLoop] = timesliceInTrack;
+      
+      // Don't actually change the redux state
+      return {
+        ...state,
+      }
+    }
+
+    case SET_LOOP_START_TIME: {
+      return {
+        ...state,
+        loopStartTime: action.payload.loopStartTime,
+        loopDuration: action.payload.loopDuration,
+      }
+    }
+
     case CREATE_LOOP: {
       let loops = [...state.loops];
 

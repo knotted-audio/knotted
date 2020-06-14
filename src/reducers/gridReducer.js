@@ -18,10 +18,12 @@ const initialState = {
   beatsPerBar: 4,
   beats: 16,
   playing: false,
+  recordingMidi: true,
   metronome: true,
   tempo: 136.55,
   loopLength: 8,
   quantizationBeats: 4,
+  quantizationMidi: 0.25, // quarter note
   gain: 0.2,
 
   // The highlighted loop that will be added to the grid when its clicked

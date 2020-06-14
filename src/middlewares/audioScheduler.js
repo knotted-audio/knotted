@@ -4,9 +4,10 @@
 //
 
 import { TOGGLE_PLAY } from "../actions/grid";
-import { createLoop } from "../actions/loop";
+import { createLoop, setLoopStartTime } from "../actions/loop";
+import { getMidiTracks} from "../reducers/loopReducer";
 
-import { getAudioCtx, triggerMetronome, triggerLoopsAtBeat, recordInputStream } from "../audioUtils";
+import { getAudioCtx, triggerMetronome, triggerMidi, triggerLoopsAtBeat, recordInputStream } from "../audioUtils";
 
 const SCHEDULE_AHEAD_TIME = 0.1;
 const TIMEOUT_DUR = 20;
@@ -22,6 +23,8 @@ const audioScheduler = (store) => (next) => {
     const {
       mediaStream,
 
+      quantizationMidi,
+
       playing,
       metronome,
       tempo,
@@ -31,12 +34,11 @@ const audioScheduler = (store) => (next) => {
       beatsPerBar,
       loopLength,
     } = state.grid;
-    const { loops } = state.loop;
+    const { loops, loopDuration, loopStartTime } = state.loop;
     const secondsPerBeat = 60.0 / tempo;
 
     try {
       const cTime = audioCtx.currentTime;
-      console.log('schedule', cTime);
 
       //
       // Manage audio triggering using a look-ahead scheduler
@@ -53,13 +55,22 @@ const audioScheduler = (store) => (next) => {
           nextNoteTime
         );
 
+        triggerMidi(
+          getMidiTracks(),
+          beats,
+          secondsPerBeat,
+          quantizationMidi,
+          nextBeat,
+          nextNoteTime,
+          loopDuration,
+          loopStartTime
+        );
+
         // At this point, we lock in the current state in redux as what audio will be scheduled
         // regardless of user changes.
         if (nextBeat % loopLength === 0) {
           const loopStart = nextNoteTime;
           const loopEnd = nextNoteTime + loopLength * secondsPerBeat;
-
-          console.log(`New loop - ${loopStart} / ${loopEnd}`);
 
           // Start recording the next loop
           recordInputStream(
@@ -98,6 +109,13 @@ const audioScheduler = (store) => (next) => {
     // 2. Audio state (updated at the start of each quantization loop)
 
     next(action);
+    const state = store.getState();
+    const {
+      tempo,
+      loopLength,
+    } = state.grid;
+    const secondsPerBeat = 60.0 / tempo;
+    const loopDuration = secondsPerBeat * loopLength;
 
     // If the playing state has been toggled, start or stop the Raf loop
     if (action.type === TOGGLE_PLAY && store.getState().grid.playing) {
@@ -106,6 +124,7 @@ const audioScheduler = (store) => (next) => {
 
       nextBeat = 0;
       nextNoteTime = audioCtx.currentTime + SCHEDULE_AHEAD_TIME;
+      store.dispatch(setLoopStartTime(nextNoteTime, loopDuration));
       frame = setTimeout(loop, TIMEOUT_DUR);
     } else if (action.type === TOGGLE_PLAY && frame) {
       clearTimeout(frame);

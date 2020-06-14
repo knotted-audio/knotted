@@ -55,7 +55,7 @@ export const setGridElem = (index, domElem) => ({
   type: SET_GRID_ELEM,
   payload: { index, domElem }
 });
-export const triggerNote = (note, velocity) => ({
+export const triggerNote = (note, velocity, triggerTime, loopStartTime) => ({
   type: TRIGGER_NOTE,
-  payload: { note, velocity }
+  payload: { note, velocity, triggerTime, loopStartTime }
 });

@@ -1,5 +1,5 @@
 /* eslint import/no-webpack-loader-syntax: off */
-import worker from 'workerize-loader!./worker';
+import worker from "workerize-loader!./worker";
 const workerInstance = new worker();
 
 const SCHEDULE_AHEAD_TIME = 0.1;
@@ -7,8 +7,6 @@ const BLIP_LENGTH = 0.01;
 
 //
 // Global value set by the latency test.
-//
-// TODO: Put in localStorage
 //
 let audioCtx = null;
 export function getAudioCtx() {
@@ -30,7 +28,79 @@ export function getDeviceStream(deviceId) {
   });
 }
 
-export function triggerMetronome(audioCtx, b, time, beats, beatsPerBar) {
+export function triggerMidi(
+  tracks,
+  beats,
+  secondsPerBeat,
+  quantization,
+  nextBeat,
+  nextBeatTime,
+  loopDuration,
+  loopStartTime
+) {
+  for (let i = 0; i < tracks.length; i++) {
+    const { muted, timeline } = tracks[i];
+
+    const times = Object.keys(timeline);
+    if (muted || times.length === 0) {
+      continue;
+    }
+
+    const loopNum = Math.floor((nextBeatTime - loopStartTime) / loopDuration);
+    // console.log(loopNum, loopDuration);
+
+    times
+      .filter((t) => {
+        // Shift the trigger time to the current audio context time (relative to the
+        // start of the loop)
+        const tShifted = parseFloat(t) + loopStartTime + loopDuration * loopNum;
+
+        // Schedule notes 1 beat ahead
+        return (
+          tShifted > nextBeatTime + secondsPerBeat &&
+          tShifted <= nextBeatTime + secondsPerBeat * 2
+        );
+      })
+      .forEach((time) => {
+        const ctx = getAudioCtx();
+        // Preconfigured sounds to play
+        const engines = timeline[time];
+
+        // Shift the time to be relative to this loop
+        const tShifted = parseFloat(time) + loopStartTime + loopDuration * loopNum;
+
+        // Quantize the notes so they are in time with the click
+        //
+        // TODO: Generalise to be configurable to different quantization settings
+        const offsetFromBeat = (nextBeatTime + secondsPerBeat) - tShifted;
+        const offsetAsFraction = offsetFromBeat / secondsPerBeat;
+        let tQuantized = nextBeatTime + secondsPerBeat;
+        if (offsetAsFraction < 0.125) {
+        } else if (offsetAsFraction < (3/8)) {
+          tQuantized += 0.25 * secondsPerBeat;
+        } else if (offsetAsFraction < (5/8)) {
+          tQuantized += 0.5 * secondsPerBeat;
+        } else if (offsetAsFraction < (7/8)) {
+          tQuantized += 0.75 * secondsPerBeat;
+        } else {
+          tQuantized += 1 * secondsPerBeat;
+        }
+
+        engines.forEach((engine) => {
+          const instance = new engine(ctx);
+          instance.trigger(tQuantized);
+        });
+      });
+  }
+}
+
+export function triggerMetronome(
+  audioCtx,
+  b,
+  nextBeatTime,
+  beats,
+  beatsPerBar
+) {
   const osc = audioCtx.createOscillator();
   osc.connect(audioCtx.destination);
 
@@ -42,8 +112,8 @@ export function triggerMetronome(audioCtx, b, time, beats, beatsPerBar) {
     osc.frequency.value = 220.0;
   }
 
-  osc.start(time);
-  osc.stop(time + BLIP_LENGTH);
+  osc.start(nextBeatTime);
+  osc.stop(nextBeatTime + BLIP_LENGTH);
 }
 
 export function triggerLoopsAtBeat(
@@ -130,7 +200,12 @@ export function recordInputStream(stream, audioCtx, start, end) {
 
       // Offset the recording by the global system latency value
       // Do the processing in a web-worker to avoid locking the event loop
-      const outB = await workerInstance.sliceBuffer(inB, (end - start), sampleRate, LATENCY_MS);
+      const outB = await workerInstance.sliceBuffer(
+        inB,
+        end - start,
+        sampleRate,
+        LATENCY_MS
+      );
       outputAudioBuffer.copyFromChannel(outB, 0);
 
       return outputAudioBuffer;
