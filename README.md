@@ -4,39 +4,28 @@ Looping software for the web
 
 ## TODOs
 
-- Split audioScheduler into 3 modules:
-  > audioUtils (record, trigger helpers etc)
-  > audioScheduler middleware (setTimeout based scheduling so background tab issue goes away)
-  > visualScheduler middleware (raf based animations)
+- Split gridReducer into:
+  - appReducer (tempo, loopLength, metronome, playing, gain) // changed while performing
+  - configReducer (noteMapping, midiDevices, audioDevices, mediaStream, beatsPerBar, beats) // configured before performing
+  - gridReducer (grid) // actually the grid
 
-- Try a version based on Tone.js
-  https://codepen.io/jakealbaugh/pen/QVqgBE
+- Improve UI:
+ * Circle countdown for the loop duration
+ * Animate cursor on each loop
 
---- Think about midi inputs!
-- Multiplier button/hotkey
-- Undo button/hotkey
-- Record on/off hotkey (reverses the undo button functionality.. When recording it discards, when not recording it keeps it)
-
-- Circle countdown for the loop duration
-
+- Add tuna.js effects? https://github.com/Theodeus/tuna
 
 - Apply changes to state to audio scheduler at the start of each loop (configurable length)
 
-- Animate cursor on each loop
+- More MIDI commands
 
-- Move audio processing to worker thread as much as possible
-
-- hotkeys? number of loop followed by beat number (with hotkey for cancel in case of mistakes)
-
-- Trigger stuff with MIDI input (keyboard or sample pad)
+- Up to 4 MIDI drum tracks at a time. Record the timing of each press relative to the start of the loop, quantize, and
+  save to a list. Add commands to select active track: record over, multiply, take first half, mute
+  > audioScheduler check this list as well as the audio loops one
 
 ## Research
 
 ### WebAudio
-
-Tutorial for schedulers in WebAudio
-
-- https://www.html5rocks.com/en/tutorials/audio/scheduling/
 
 Tutorials on using a wasm AudioWorkletNode
 
@@ -45,12 +34,6 @@ Tutorials on using a wasm AudioWorkletNode
 Research paper on WebAudio processing tools for live coding
 
 - https://www.ntnu.edu/documents/1282113268/1290797448/WAC2019-CameraReadySubmission-40.pdf/12d96b25-63f4-f1e6-6b3f-b761031a9316?t=1575329716181
-
-### WebMIDI
-
-WebMIDI Wrapper lib
-
-- https://github.com/djipco/webmidi
 
 ### Rust
 

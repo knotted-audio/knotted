@@ -7,10 +7,23 @@
 }
 
 .Controls {
-  height: 50px;
+  height: 130px;
   padding: 10px;
   padding-left: 100px;
   padding-bottom: 30px;
+
+  text-align: center;
+  display: flex;
+
+  margin: 10px;
+}
+
+.Controls > * {
+  padding: 10px;
+}
+
+.Controls h2 {
+  padding: 10px;
 }
 
 .PlayButton {
@@ -18,19 +31,25 @@
   background: transparent;
   box-sizing: border-box;
   width: 0;
-  height: 35px;
+  height: 15px;
 
   border-color: transparent transparent transparent #202020;
   transition: 100ms all ease;
   cursor: pointer;
 
   border-style: solid;
-  border-width: 17px 0 17px 35px;
+  border-width: 7px 0 7px 17px;
 }
 
 .PlayButton.pause {
   border-style: double;
-  border-width: 0px 0 0px 35px;
+  border-width: 0px 0 0px 17px;
+}
+
+button {
+  border: solid 1px black;
+  background-color: white;
+  font-family: 'Hack';
 }
 
 .PlayButton:hover {
@@ -52,9 +71,9 @@
 }
 
 .Loop:hover {
-    background-color: rgb(97, 99, 90);
-    cursor: pointer;
-  }
+  background-color: rgb(97, 99, 90);
+  cursor: pointer;
+}
 
 .LoopPanel {
   height: 100%;

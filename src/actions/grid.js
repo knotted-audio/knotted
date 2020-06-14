@@ -11,6 +11,7 @@ export const SET_LOOP_LENGTH = '@GRID/SET_LOOP_LENGTH';
 export const SET_MEDIA_STREAM = '@GRID/SET_MEDIA_STREAM';
 export const SET_GRID_ELEM = '@GRID/SET_GRID_ELEM';
 export const ADD_LOOP_INSTANCE = '@GRID/ADD_LOOP_INSTANCE';
+export const TRIGGER_NOTE = '@GRID/TRIGGER_NOTE';
 
 export const addLoopInstance = (beat, loopId) => ({
   type: ADD_LOOP_INSTANCE,
@@ -53,4 +54,8 @@ export const setTempo = (tempo) => ({
 export const setGridElem = (index, domElem) => ({
   type: SET_GRID_ELEM,
   payload: { index, domElem }
+});
+export const triggerNote = (note, velocity) => ({
+  type: TRIGGER_NOTE,
+  payload: { note, velocity }
 });

@@ -35,7 +35,6 @@ const initialState = {
   mediaStream: null,
 
   grid: generateGrid(16, 4),
-  // gridElems: [],
 };
 
 // TODO: Seemless switching betweeen resolutions - different state per view

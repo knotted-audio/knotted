@@ -1,4 +1,13 @@
+//
+// Use offscreen canvas and web worker to do the canvas rendering on a
+// worker thread
+//
+// http://shimi.io/blog/offscreen-canvas-react-three-js-web-workers
+//
 import React, { useRef, useLayoutEffect, memo } from "react";
+
+/* eslint import/no-webpack-loader-syntax: off */
+import Worker from "workerize-loader!./Waveform.worker";
 
 const Waveform = (props = {}) => {
   const {
@@ -12,20 +21,45 @@ const Waveform = (props = {}) => {
   } = props;
 
   const canvas = useRef(null);
+  const worker = new Worker();
 
   useLayoutEffect(() => {
-    const context = canvas.current.getContext("2d");
+    const w = width * zoom;
+    const middle = height / 2.0;
 
-    var w = width * zoom;
-    var middle = height / 2.0;
+    const data = buffer.getChannelData(0);
+    const step = Math.ceil(data.length / w);
 
-    var channelData = buffer.getChannelData(0);
-    var step = Math.ceil(channelData.length / w);
+    // Creating an OffscreenCanvas element.
+    // Rendering changes in this object will be reflected
+    // and displayed on the original canvas.
+    const offscreenCanvas = canvas.current.transferControlToOffscreen();
 
-    context.fillStyle = color;
-    draw(width, step, middle, channelData, context);
+    // worker.postMessage is a method which
+    // sends a message to the worker's inner scope.
+    worker.postMessage(
+      {
+        type: "waveform-render",
+        payload: {
+          canvas: offscreenCanvas,
+          width,
+          step,
+          middle,
+          data,
+          fillStyle: color,
+        },
+      },
+      [offscreenCanvas]
+    );
 
     if (onDone) {
+      // worker.onmessage event will be invoked by the worker
+      // whenever the rendering process is done.
+      worker.onmessage = (event) => {
+        if (event.data.type === "waveform-rendered") {
+          onDone();
+        }
+      };
       onDone();
     }
   });
@@ -36,34 +70,12 @@ const Waveform = (props = {}) => {
   return <canvas ref={canvas} width={dw} height={dh} style={style} />;
 };
 
-function draw(width, step, middle, data, ctx) {
-  for (var i = 0; i < width; i += 1) {
-    var min = 1.0;
-    var max = -1.0;
-
-    for (var j = 0; j < step; j += 1) {
-      var datum = data[i * step + j];
-
-      if (datum < min) {
-        min = datum;
-      } else if (datum > max) {
-        max = datum;
-      }
-
-      ctx.fillRect(i, (1 + min) * middle, 1, Math.max(1, (max - min) * middle));
-    }
-  }
-}
-
 // Use the loop ID equality as a proxy for the buffer equality
 export default memo(
   (props) => <Waveform {...props} />,
-  (prevProps, nextProps) => 
-    (
-      prevProps.id === nextProps.id &&
-      prevProps.width === nextProps.width &&
-      prevProps.height === nextProps.height &&
-      prevProps.color === nextProps.color
-    )
-  
+  (prevProps, nextProps) =>
+    prevProps.id === nextProps.id &&
+    prevProps.width === nextProps.width &&
+    prevProps.height === nextProps.height &&
+    prevProps.color === nextProps.color
 );

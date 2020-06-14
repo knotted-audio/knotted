@@ -12,7 +12,7 @@ const initialState = {
   loopsInUse: [],
 };
 
-const MAX_LOOPS = 3;
+const MAX_LOOPS = 5;
 
 export default (state = initialState, action) => {
   switch (action.type) {
@@ -72,16 +72,6 @@ export default (state = initialState, action) => {
       };
     }
     case ADD_LOOP_INSTANCE: {
-      // let loops = [...state.loops];
-      // loops = loops.map(loop => {
-      //   if (loop.id === action.payload.loopId) {
-      //     loop.isBeingUsed = true;
-      //   }
-      //   return loop;
-      // });
-      //
-      // console.log(loops, action.payload);
-
       return {
         ...state,
         loopsInUse: [...state.loopsInUse, action.payload.loopId],
