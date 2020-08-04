@@ -75,6 +75,27 @@ button {
   cursor: pointer;
 }
 
+.MidiPanel {
+  height: 100%;
+  padding: 10px;
+  background-color: rgb(227, 227, 227);
+}
+
+.MidiSample {
+  text-align: left;
+  position: relative;
+  height: 15px;
+  padding-bottom: 10px;
+}
+
+.MidiNote {
+  height: 10px;
+  width: 10px;
+  display: inline-block;
+  position: absolute;
+  background-color: rgb(157, 150, 142);
+}
+
 .LoopPanel {
   height: 100%;
   padding: 10px;

@@ -49,17 +49,65 @@ const NOTE_ON = 144;
 // const NOTE_OFF = 128;
 
 const midiListener = (store) => (next) => {
-
   // Listen to MIDI devices and dispatch actions when MIDI messages are received.
   const listeningTo = [];
   const listen = (devices, store) => {
     for (const dev of devices) {
+      let kick;
+      let hihat;
+      let snare;
+      let clap;
+      let cymbal;
+
       if (listeningTo.indexOf(dev.id) === -1) {
         dev.addEventListener("midimessage", (msg) => {
           const [cmd, note, velocity] = msg.data;
           const ctx = getAudioCtx();
+
+          if (!kick) {
+            const ctx = getAudioCtx();
+            kick = new Kick(ctx);
+            kick.setup();
+            hihat = new HiHat(ctx);
+            hihat.setup();
+            snare = new Snare(ctx);
+            snare.setup();
+            clap = new Clap(ctx);
+            clap.setup();
+            cymbal = new Cymbal(ctx);
+            cymbal.setup();
+          }
+
+          const DRUMS = {
+            C2: () => {
+              kick.trigger(ctx.currentTime);
+              kick = new Kick(ctx);
+              kick.setup();
+            },
+            Db2: () => {
+              hihat.trigger(ctx.currentTime);
+              hihat = new HiHat(ctx);
+              hihat.setup();
+            },
+            D2: () => {
+              snare.trigger(ctx.currentTime);
+              snare = new Snare(ctx);
+              snare.setup();
+            },
+            // Eb2: () => cymbal.trigger(ctx.currentTime),
+            E2: () => {
+              clap.trigger(ctx.currentTime);
+              clap = new Clap(ctx);
+              clap.setup();
+            },
+          };
+
           if (cmd === NOTE_ON && velocity > 0) {
             store.dispatch(triggerNote(NOTE_TO_KEY[note], velocity, ctx.currentTime));
+            const action = DRUMS[NOTE_TO_KEY[note]];
+            if (action) {
+              action();
+            }
           }
         });
         listeningTo.push(dev.id);
@@ -75,29 +123,12 @@ const midiListener = (store) => (next) => {
     }
 
     if (action.type === TRIGGER_NOTE) {
-      // TODO:
-      //
-      //  - toggle input mode:
-      //    > instrument (keyboard / sample pad)
-      //    > controller (start / stop / record / multiply / undo)
-      //
-      //  This allows us to start lighting up keys on the sample pad etc based on mode
-      //
-      // const ctx = getAudioCtx();
       const { note, triggerTime } = action.payload;
-
-      const { loopLength, recordingMidi } = store.getState().grid;
-      // const time = ctx.currentTime;
-      //
-      // const kick = new Kick(ctx);
-      // const hihat = new HiHat(ctx);
-      // const snare = new Snare(ctx);
-      // const clap = new Clap(ctx);
-      // const cymbal = new Cymbal(ctx);
+      const { loopLength, recordingMidi, playing } = store.getState().grid;
 
       const schedule = (engine) => {
-        if (recordingMidi) {
-          return recordMidiNote(engine, triggerTime)
+        if (recordingMidi && playing) {
+          return recordMidiNote(engine, triggerTime);
         }
       };
 
@@ -124,7 +155,6 @@ const midiListener = (store) => (next) => {
       };
 
       const newAction = NOTE_MAPPING[note];
-      console.log(newAction);
       if (newAction) {
         const actionResult = newAction();
         if (actionResult) {

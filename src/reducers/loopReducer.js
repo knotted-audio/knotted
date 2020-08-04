@@ -14,9 +14,10 @@ const initialState = {
   activeMidiTrack: 0,
   loopStartTime: 0,
   loopDuration: 0,
+  midiCounter: 0,
 };
 
-const MAX_LOOPS = 5;
+const MAX_LOOPS = 3;
 const midiTracks = [...Array(MAX_LOOPS).keys()].map(() => ({ muted: false, timeline: {} }));
 
 export function getMidiTracks() {
@@ -40,6 +41,7 @@ export default (state = initialState, action) => {
       // Don't actually change the redux state
       return {
         ...state,
+        midiCounter: state.midiCounter + 1, // Trigger an update to the midi UI elem
       }
     }
 

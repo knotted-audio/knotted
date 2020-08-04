@@ -5,6 +5,7 @@ export class Kick {
         this.decay = 0.5;
         this.volume = 1;
         this.fxAmount = 0;
+        this.hasSetup = false;
     }
 
     makeDistortionCurve(amount) {
@@ -31,11 +32,14 @@ export class Kick {
         this.osc.connect(this.gain);
         this.gain.connect(this.distortion);
         this.distortion.connect(this.ctx.destination);
+        this.hasSetup = true;
     }
 
     trigger(time) {
         if (this.volume === 0) { return };
-        this.setup();
+        if (!this.hasSetup) {
+          this.setup();
+        }
 
         this.osc.frequency.setValueAtTime(this.tone, time + 0.001);
         this.gain.gain.linearRampToValueAtTime(this.volume, time + 0.1)

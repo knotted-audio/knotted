@@ -6,6 +6,8 @@ export class HiHat {
         this.decay = 0.5;
         this.volume = 1;
         this.fxAmount = 0;
+
+        this.hasSetup = false;
     }
 
     setup() {
@@ -23,11 +25,14 @@ export class HiHat {
         this.hipass.connect(this.oscEnvelope);
         this.oscEnvelope.connect(this.panner);
         this.panner.connect(this.ctx.destination);
+        this.hasSetup = true;
     }
 
     trigger(time) {
         if (this.volume === 0) { return };
-        this.setup();
+        if (!this.hasSetup) {
+          this.setup();
+        }
 
         this.panner.pan.value = Math.cos(time * 4) * this.fxAmount/100;
         this.ratios.forEach((ratio) => {

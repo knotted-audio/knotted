@@ -4,6 +4,7 @@ export class Snare {
         this.tone = 100;
         this.decay = 0.2;
         this.volume = 1;
+        this.hasSetup = false;
     }
 
     setup() {
@@ -26,6 +27,7 @@ export class Snare {
         this.oscEnvelope = this.ctx.createGain();
         this.osc.connect(this.oscEnvelope);
         this.oscEnvelope.connect(this.ctx.destination);
+        this.hasSetup = true;
     }
 
     noiseBuffer() {
@@ -42,7 +44,9 @@ export class Snare {
 
     trigger(time) {
         if (this.volume === 0) { return };
-        this.setup();
+        if (!this.hasSetup) {
+          this.setup();
+        }
 
         this.noiseEnvelope.gain.setValueAtTime(this.volume, time);
         this.noiseEnvelope.gain.exponentialRampToValueAtTime(0.01, time + this.decay);

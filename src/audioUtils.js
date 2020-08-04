@@ -55,11 +55,20 @@ export function triggerMidi(
         // start of the loop)
         const tShifted = parseFloat(t) + loopStartTime + loopDuration * loopNum;
 
+        const tShiftedNext = parseFloat(t) + loopStartTime + loopDuration * (loopNum + 1);
+
         // Schedule notes 1 beat ahead
-        return (
+        const thisLoop = (
           tShifted > nextBeatTime + secondsPerBeat &&
           tShifted <= nextBeatTime + secondsPerBeat * 2
         );
+
+        const nextLoop = (
+          tShiftedNext > nextBeatTime + secondsPerBeat &&
+          tShiftedNext <= nextBeatTime + secondsPerBeat * 2
+        );
+
+        return thisLoop || nextLoop;
       })
       .forEach((time) => {
         const ctx = getAudioCtx();
@@ -193,20 +202,20 @@ export function recordInputStream(stream, audioCtx, start, end) {
       );
 
       const inB = d.getChannelData(0);
-      // const outB = outputAudioBuffer.getChannelData(0);
-      // for (let t = 0; t < (end - start) * sampleRate; t++) {
-      //   outB[t] = inB[t + Math.floor((LATENCY_MS * sampleRate) / 1000)];
-      // }
+      const outB = outputAudioBuffer.getChannelData(0);
+      for (let t = 0; t < (end - start) * sampleRate; t++) {
+        outB[t] = inB[t + Math.floor((LATENCY_MS * sampleRate) / 1000)];
+      }
 
       // Offset the recording by the global system latency value
       // Do the processing in a web-worker to avoid locking the event loop
-      const outB = await workerInstance.sliceBuffer(
-        inB,
-        end - start,
-        sampleRate,
-        LATENCY_MS
-      );
-      outputAudioBuffer.copyFromChannel(outB, 0);
+      // const outB = await workerInstance.sliceBuffer(
+      //   inB,
+      //   end - start,
+      //   sampleRate,
+      //   LATENCY_MS
+      // );
+      // outputAudioBuffer.copyFromChannel(outB, 0);
 
       return outputAudioBuffer;
     }

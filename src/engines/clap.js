@@ -7,6 +7,7 @@ export class Clap {
         this.pulseWidth = 0.025;
         this.ctx = ctx;
         this.fxAmount = 0;
+        this.hasSetup = false;
     }
 
     noiseBuffer() {
@@ -40,11 +41,14 @@ export class Clap {
         this.feedback.connect(this.echo);
         this.feedback.connect(this.ctx.destination);
         this.envelope.connect(this.ctx.destination);
+        this.hasSetup = true;
     }
 
     trigger = (time) => {
         if (this.volume === 0) { return };
-        this.setup();
+        if (!this.hasSetup) {
+          this.setup();
+        }
 
         this.envelope.gain.setValueAtTime(this.volume, time);
         this.envelope.gain.exponentialRampToValueAtTime(0.1, time + this.pulseWidth);

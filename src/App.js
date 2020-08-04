@@ -5,6 +5,7 @@ import Backend from "react-dnd-html5-backend";
 
 import LoopPanel from "./components/LoopPanel";
 import GridPanel from "./components/GridPanel";
+import MidiPanel from "./components/MidiPanel";
 import Controls from "./components/Controls";
 import "./App.css";
 
@@ -41,7 +42,9 @@ function useWindowSize() {
 
 function App({ playing, mediaStream, togglePlayA }) {
   const { width, height } = useWindowSize();
-  const gridWidth = Math.min(0.75 * width, height - 120);
+
+  const gridWidth = Math.min(0.35 * width, height - 120);
+  const loopWith = (width - gridWidth) * 0.5;
 
   const [isTestingLatency, setIsTestingLatency] = useState(false);
 
@@ -72,7 +75,8 @@ function App({ playing, mediaStream, togglePlayA }) {
         ) : (
           <DndProvider backend={Backend}>
             <GridPanel width={gridWidth} activeBeat={0} />
-            <LoopPanel width={width - gridWidth} />
+            <LoopPanel width={loopWith} />
+            <MidiPanel width={loopWith} />
           </DndProvider>
         )}
       </div>

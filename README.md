@@ -19,9 +19,6 @@ Looping software for the web
 
 - More MIDI commands
 
-- Up to 4 MIDI drum tracks at a time. Record the timing of each press relative to the start of the loop, quantize, and
-  save to a list. Add commands to select active track: record over, multiply, take first half, mute
-  > audioScheduler check this list as well as the audio loops one
 
 ## Research
 
